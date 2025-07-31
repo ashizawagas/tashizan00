@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>たしざん１</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #ffeaa7, #fab1a0, #fd79a8);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: rotate(0deg) translate(-50%, -50%); }
+            100% { transform: rotate(360deg) translate(-50%, -50%); }
+        }
+
+        h1 {
+            color: #e17055;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 1;
+        }
+
+        .score {
+            background: #55a3ff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            display: inline-block;
+            position: relative;
+            z-index: 1;
+        }
+
+        .problem {
+            background: #ffeaa7;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-size: 1.3em;
+            line-height: 1.6;
+            border: 3px solid #fdcb6e;
+            position: relative;
+            z-index: 1;
+        }
+
+        .person-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 10px;
+        }
+
+        .acorn-container {
+            min-height: 80px;
+            padding: 15px;
+            margin: 10px 0;
+            background: rgba(255,255,255,0.8);
+            border: 2px dashed #74b9ff;
+            border-radius: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .acorn {
+            width: 30px;
+            height: 30px;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: move;
+            user-select: none;
+            transition: transform 0.2s ease;
+            position: relative;
+        }
+
+        .acorn:hover {
+            transform: scale(1.1);
+        }
+
+        .acorn.dragging {
+            cursor: grabbing;
+            transform: scale(1.2);
+            z-index: 1000;
+        }
+
+        .workspace {
+            min-height: 100px;
+            padding: 20px;
+            margin: 20px 0;
+            background: #e8f5ff;
+            border: 3px dashed #74b9ff;
+            border-radius: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .workspace-label {
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: #74b9ff;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.9em;
+        }
+
+        .input-group {
+            margin: 20px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #2d3436;
+        }
+
+        .formula-inputs {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 1.5em;
+        }
+
+        input {
+            font-size: 1.5em;
+            padding: 15px;
+            border: 3px solid #74b9ff;
+            border-radius: 10px;
+            width: 80px;
+            text-align: center;
+            margin: 5px;
+        }
+
+        /* spinnerを非表示 */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #0984e3;
+            box-shadow: 0 0 10px rgba(116, 185, 255, 0.5);
+        }
+
+        .buttons {
+            margin: 20px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        button {
+            font-size: 1.3em;
+            padding: 15px 30px;
+            margin: 10px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .check-btn {
+            background: #00b894;
+            color: white;
+        }
+
+        .check-btn:hover {
+            background: #00a085;
+            transform: translateY(-2px);
+        }
+
+        .next-btn {
+            background: #fdcb6e;
+            color: #2d3436;
+        }
+
+        .next-btn:hover {
+            background: #e17055;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .result {
+            font-size: 1.5em;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            position: relative;
+            z-index: 1;
+        }
+
+        .correct {
+            background: #d1f2eb;
+            color: #00b894;
+            border: 2px solid #00b894;
+        }
+
+        .incorrect {
+            background: #fadbd8;
+            color: #e74c3c;
+            border: 2px solid #e74c3c;
+        }
+
+        .clear {
+            background: #e8f5e8;
+            color: #27ae60;
+            border: 3px solid #27ae60;
+            font-size: 2em;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .restart-btn {
+            background: #6c5ce7;
+            color: white;
+        }
+
+        .restart-btn:hover {
+            background: #5f3dc4;
+            transform: translateY(-2px);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .drop-zone {
+            border-color: #00b894 !important;
+            background: rgba(0, 184, 148, 0.1) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌰 たしざん１ 🌰</h1>
+        
+        <div class="score">
+            せいかい: <span id="correct-count">0</span>/3
+        </div>
+
+        <div id="problem-area">
+            <div class="problem">
+                <div id="problem-text"></div>
+                
+                <div class="person-section">
+                    <div><strong id="person-a-name">あきらさん</strong>の どんぐり</div>
+                    <div class="acorn-container" id="acorns-a"></div>
+                </div>
+                
+                <div class="person-section">
+                    <div><strong id="person-b-name">ひろしさん</strong>の どんぐり</div>
+                    <div class="acorn-container" id="acorns-b"></div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>しき:</label>
+                <div class="formula-inputs">
+                    <input type="number" id="formula-first" min="0" max="20">
+                    <span>＋</span>
+                    <input type="number" id="formula-second" min="0" max="20">
+                    <span>＝</span>
+                    <input type="number" id="answer-input" min="0" max="30">
+                </div>
+            </div>
+
+            <div class="buttons">
+                <button class="check-btn" onclick="checkAnswer()">こたえあわせ</button>
+            </div>
+
+            <div id="result" class="result hidden"></div>
+
+            <div class="buttons">
+                <button class="next-btn hidden" id="next-btn" onclick="nextProblem()">つぎのもんだい</button>
+            </div>
+        </div>
+
+        <div id="clear-area" class="hidden">
+            <div class="result clear">
+                🎉 おめでとう！ 🎉<br>
+                ぜんぶせいかいです！
+            </div>
+            <button class="restart-btn" onclick="restartGame()">もういちど</button>
+        </div>
+    </div>
+
+    <script>
+        let currentProblem = {};
+        let correctCount = 0;
+        let totalProblems = 3;
+        let draggedElement = null;
+
+        // 問題を生成する関数
+        function generateProblem() {
+            let sum = Math.floor(Math.random() * 18) + 2; // 2-19の合計
+            let a, b;
+            
+            if (sum >= 11) {
+                // 合計が11-19の場合、aは10以上、bは9以下
+                a = Math.floor(Math.random() * (sum - 9)) + 10;
+                b = sum - a;
+                if (b > 9) {
+                    a = Math.floor(Math.random() * 10) + 10;
+                    b = sum - a;
+                }
+            } else {
+                // 合計が2-10の場合
+                a = Math.floor(Math.random() * (sum - 1)) + 1;
+                b = sum - a;
+            }
+
+            currentProblem = { a, b, sum };
+            
+            document.getElementById('problem-text').innerHTML = `
+                あきらさんは どんぐりを <strong>${a}</strong> こ ひろいました。<br>
+                ひろしさんは どんぐりを <strong>${b}</strong> こ ひろいました。<br>
+                あわせて なんこ でしょう？
+            `;
+
+            // どんぐりを表示
+            createAcorns('acorns-a', a);
+            createAcorns('acorns-b', b);
+        }
+
+        // どんぐりを作成する関数
+        function createAcorns(containerId, count) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            for (let i = 0; i < count; i++) {
+                const acorn = document.createElement('div');
+                acorn.className = 'acorn';
+                acorn.innerHTML = '🌰';
+                acorn.dataset.containerId = containerId;
+                acorn.dataset.index = i;
+                
+                // マウスイベントでドラッグを実装
+                acorn.addEventListener('mousedown', handleMouseDown);
+                
+                container.appendChild(acorn);
+            }
+        }
+
+        let isDragging = false;
+        let dragOffset = { x: 0, y: 0 };
+
+        function handleMouseDown(e) {
+            isDragging = true;
+            draggedElement = e.target;
+            e.target.classList.add('dragging');
+            
+            const rect = e.target.getBoundingClientRect();
+            dragOffset.x = e.clientX - rect.left - rect.width / 2;
+            dragOffset.y = e.clientY - rect.top - rect.height / 2;
+            
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            e.preventDefault();
+        }
+
+        function handleMouseMove(e) {
+            if (!isDragging || !draggedElement) return;
+            
+            draggedElement.style.position = 'fixed';
+            draggedElement.style.left = (e.clientX - dragOffset.x) + 'px';
+            draggedElement.style.top = (e.clientY - dragOffset.y) + 'px';
+            draggedElement.style.zIndex = '1000';
+        }
+
+        function handleMouseUp(e) {
+            if (!isDragging || !draggedElement) return;
+            
+            isDragging = false;
+            draggedElement.classList.remove('dragging');
+            
+            // ドロップ先を見つける
+            const elementBelow = document.elementFromPoint(e.clientX, e.clientY);
+            const dropZone = elementBelow?.closest('.acorn-container');
+            
+            if (dropZone) {
+                // スタイルをリセット
+                draggedElement.style.position = '';
+                draggedElement.style.left = '';
+                draggedElement.style.top = '';
+                draggedElement.style.zIndex = '';
+                
+                dropZone.appendChild(draggedElement);
+            } else {
+                // 元の位置に戻す
+                draggedElement.style.position = '';
+                draggedElement.style.left = '';
+                draggedElement.style.top = '';
+                draggedElement.style.zIndex = '';
+            }
+            
+            draggedElement = null;
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        }
+
+        // ドロップゾーンの設定
+        function setupDropZones() {
+            const dropZones = [
+                document.getElementById('acorns-a'),
+                document.getElementById('acorns-b')
+            ];
+
+            dropZones.forEach(zone => {
+                zone.addEventListener('mouseenter', function() {
+                    if (isDragging) {
+                        this.classList.add('drop-zone');
+                    }
+                });
+                zone.addEventListener('mouseleave', function() {
+                    this.classList.remove('drop-zone');
+                });
+            });
+        }
+
+        // 答えをチェックする関数
+        function checkAnswer() {
+            let first = parseInt(document.getElementById('formula-first').value) || 0;
+            let second = parseInt(document.getElementById('formula-second').value) || 0;
+            let answer = parseInt(document.getElementById('answer-input').value) || 0;
+            
+            // 式の順番は問わない
+            let isFormulaCorrect = (first === currentProblem.a && second === currentProblem.b) || 
+                                   (first === currentProblem.b && second === currentProblem.a);
+            let isAnswerCorrect = answer === currentProblem.sum;
+            
+            let resultDiv = document.getElementById('result');
+            resultDiv.classList.remove('hidden');
+            
+            if (isFormulaCorrect && isAnswerCorrect) {
+                correctCount++;
+                resultDiv.className = 'result correct';
+                resultDiv.innerHTML = '🎉 せいかい！ よくできました！';
+                document.getElementById('correct-count').textContent = correctCount;
+                
+                if (correctCount >= totalProblems) {
+                    setTimeout(() => {
+                        document.getElementById('problem-area').classList.add('hidden');
+                        document.getElementById('clear-area').classList.remove('hidden');
+                    }, 1500);
+                } else {
+                    document.getElementById('next-btn').classList.remove('hidden');
+                }
+            } else {
+                resultDiv.className = 'result incorrect';
+                let message = 'ざんねん。';
+                if (!isFormulaCorrect && !isAnswerCorrect) {
+                    message += '<br>しきと こたえを かくにんしてね。';
+                } else if (!isFormulaCorrect) {
+                    message += '<br>しきを かくにんしてね。';
+                } else {
+                    message += '<br>こたえを かくにんしてね。';
+                }
+                message += `<br>せいかいは ${currentProblem.a} + ${currentProblem.b} = ${currentProblem.sum} です。`;
+                resultDiv.innerHTML = message;
+                document.getElementById('next-btn').classList.remove('hidden');
+            }
+        }
+
+        // 次の問題に進む
+        function nextProblem() {
+            document.getElementById('formula-first').value = '';
+            document.getElementById('formula-second').value = '';
+            document.getElementById('answer-input').value = '';
+            document.getElementById('result').classList.add('hidden');
+            document.getElementById('next-btn').classList.add('hidden');
+            generateProblem();
+        }
+
+        // ゲームを再開始
+        function restartGame() {
+            correctCount = 0;
+            document.getElementById('correct-count').textContent = correctCount;
+            document.getElementById('problem-area').classList.remove('hidden');
+            document.getElementById('clear-area').classList.add('hidden');
+            nextProblem();
+        }
+
+        // Enterキーで答え合わせ
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                if (!document.getElementById('result').classList.contains('hidden')) {
+                    if (!document.getElementById('next-btn').classList.contains('hidden')) {
+                        nextProblem();
+                    }
+                } else {
+                    checkAnswer();
+                }
+            }
+        });
+
+        // 初期化
+        setupDropZones();
+        generateProblem();
+    </script>
+</body>
+</html>
